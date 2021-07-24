@@ -1,5 +1,5 @@
 # File: /Makefile
-# Project: nestjs-tracing
+# Project: nestjs-opentelemetry-sdk
 # File Created: 14-07-2021 11:43:59
 # Author: Clay Risser <email@clayrisser.com>
 # -----

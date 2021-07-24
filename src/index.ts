@@ -1,6 +1,6 @@
 /**
  * File: /src/index.ts
- * Project: nestjs-tracing
+ * Project: nestjs-opentelemetry-sdk
  * File Created: 14-07-2021 11:43:59
  * Author: Clay Risser <email@clayrisser.com>
  * -----
@@ -22,54 +22,113 @@
  * limitations under the License.
  */
 
-import { DynamicModule, Global, Logger, Module } from '@nestjs/common';
-import { TracingOptions, TracingAsyncOptions, TRACING_OPTIONS } from './types';
+import { HttpInstrumentation } from '@opentelemetry/instrumentation-http';
+import { ExpressInstrumentation } from '@opentelemetry/instrumentation-express';
+import { NodeSDK, NodeSDKConfiguration } from '@opentelemetry/sdk-node';
+import {
+  DynamicModule,
+  Global,
+  Logger,
+  Module,
+  OnModuleDestroy,
+  Inject,
+  OnModuleInit
+} from '@nestjs/common';
+import OpenTelemetrySdkProvider from './opentelemetrySdk.provider';
+import { OpenTelemetryAsyncOptions, SDK_CONFIGURATION } from './types';
 
 @Global()
 @Module({})
-export default class TracingModule {
-  private readonly logger = new Logger(TracingModule.name);
+export default class OpenTelemetryModule
+  implements OnModuleInit, OnModuleDestroy
+{
+  private readonly logger = new Logger(OpenTelemetryModule.name);
 
   private static imports = [];
 
-  public static register(options: TracingOptions): DynamicModule {
+  private static providersAndExports = [OpenTelemetrySdkProvider];
+
+  constructor(
+    @Inject(OpenTelemetrySdkProvider) private readonly sdk: NodeSDK
+  ) {}
+
+  public static register(
+    configuration: Partial<NodeSDKConfiguration>
+  ): DynamicModule {
     return {
-      module: TracingModule,
+      module: OpenTelemetryModule,
       global: true,
-      imports: TracingModule.imports,
+      imports: OpenTelemetryModule.imports,
       providers: [
+        ...OpenTelemetryModule.providersAndExports,
         {
-          provide: TRACING_OPTIONS,
-          useValue: options
+          provide: SDK_CONFIGURATION,
+          useValue: {
+            ...configuration
+          }
         }
       ],
-      exports: [TRACING_OPTIONS]
+      exports: [...OpenTelemetryModule.providersAndExports, SDK_CONFIGURATION]
     };
   }
 
   public static registerAsync(
-    asyncOptions: TracingAsyncOptions
+    asyncOptions: OpenTelemetryAsyncOptions
   ): DynamicModule {
     return {
-      module: TracingModule,
+      module: OpenTelemetryModule,
       global: true,
-      imports: [...TracingModule.imports, ...(asyncOptions.imports || [])],
-      providers: [TracingModule.createOptionsProvider(asyncOptions)],
-      exports: [TRACING_OPTIONS]
+      imports: [
+        ...OpenTelemetryModule.imports,
+        ...(asyncOptions.imports || [])
+      ],
+      providers: [
+        ...OpenTelemetryModule.providersAndExports,
+        OpenTelemetryModule.createSdkConfigurationProvider(asyncOptions)
+      ],
+      exports: [...OpenTelemetryModule.providersAndExports, SDK_CONFIGURATION]
     };
   }
 
-  private static createOptionsProvider(asyncOptions: TracingAsyncOptions) {
+  private static createSdkConfigurationProvider(
+    asyncOptions: OpenTelemetryAsyncOptions
+  ) {
     if (!asyncOptions.useFactory) {
       throw new Error("registerAsync must have 'useFactory'");
     }
     return {
       inject: asyncOptions.inject || [],
-      provide: TRACING_OPTIONS,
-      useFactory: asyncOptions.useFactory
+      provide: SDK_CONFIGURATION,
+      useFactory: async (
+        ...args: any[]
+      ): Promise<Partial<NodeSDKConfiguration>> => {
+        let configuration: Partial<NodeSDKConfiguration> = {};
+        if (asyncOptions?.useFactory) {
+          configuration = await asyncOptions.useFactory(...args);
+        }
+        return {
+          ...(configuration || {}),
+          instrumentations: [
+            ...(configuration.instrumentations || []),
+            new HttpInstrumentation(),
+            new ExpressInstrumentation()
+          ]
+        };
+      }
     };
+  }
+
+  async onModuleInit() {
+    await this.sdk.start();
+  }
+
+  async onModuleDestroy() {
+    try {
+      await this.sdk.shutdown();
+    } catch (err) {
+      this.logger.error(err);
+    }
   }
 }
 
-export * from './decorators';
 export * from './types';

@@ -1,6 +1,6 @@
 /**
  * File: /.eslintrc.js
- * Project: nestjs-tracing
+ * Project: nestjs-opentelemetry-sdk
  * File Created: 14-07-2021 11:43:59
  * Author: Clay Risser <email@clayrisser.com>
  * -----
@@ -22,7 +22,7 @@
  * limitations under the License.
  */
 
-describe('nestjs-tracing', () => {
+describe('nestjs-opentelemetry-sdk', () => {
   it('should work', async () => {
     expect(true).toBe(true);
   });

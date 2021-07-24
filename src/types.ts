@@ -1,6 +1,6 @@
 /**
  * File: /src/types.ts
- * Project: nestjs-tracing
+ * Project: nestjs-opentelemetry-sdk
  * File Created: 14-07-2021 11:43:59
  * Author: Clay Risser <email@clayrisser.com>
  * -----
@@ -23,21 +23,18 @@
  */
 
 import { ModuleMetadata } from '@nestjs/common/interfaces';
+import { NodeSDKConfiguration } from '@opentelemetry/sdk-node';
 
 export interface HashMap<T = any> {
   [key: string]: T;
 }
 
-export interface RegisterOptions {
-  resources?: HashMap<string[]>;
-  roles?: string[];
-}
-
-export interface TracingOptions {}
-
-export interface TracingAsyncOptions extends Pick<ModuleMetadata, 'imports'> {
+export interface OpenTelemetryAsyncOptions
+  extends Pick<ModuleMetadata, 'imports'> {
   inject?: any[];
-  useFactory?: (...args: any[]) => Promise<TracingOptions> | TracingOptions;
+  useFactory?: (
+    ...args: any[]
+  ) => Promise<Partial<NodeSDKConfiguration>> | Partial<NodeSDKConfiguration>;
 }
 
-export const TRACING_OPTIONS = 'TRACING_OPTIONS';
+export const SDK_CONFIGURATION = 'OPENTELEMETRY_SDK_CONFIGURATION';
