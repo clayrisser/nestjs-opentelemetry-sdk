@@ -1,6 +1,6 @@
 /**
  * File: /src/index.ts
- * Project: nestjs-opentelemetry-sdk
+ * Project: opentelemetry-nestjs
  * File Created: 14-07-2021 11:43:59
  * Author: Clay Risser <email@clayrisser.com>
  * -----
@@ -22,9 +22,8 @@
  * limitations under the License.
  */
 
-import { HttpInstrumentation } from '@opentelemetry/instrumentation-http';
-import { ExpressInstrumentation } from '@opentelemetry/instrumentation-express';
-import { NodeSDK, NodeSDKConfiguration } from '@opentelemetry/sdk-node';
+import { NodeSDK } from '@opentelemetry/sdk-node';
+import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
 import {
   DynamicModule,
   Global,
@@ -35,7 +34,11 @@ import {
   OnModuleInit
 } from '@nestjs/common';
 import OpenTelemetrySdkProvider from './opentelemetrySdk.provider';
-import { OpenTelemetryAsyncOptions, SDK_CONFIGURATION } from './types';
+import {
+  OPENTELEMETRY_OPTIONS,
+  OpenTelemetryAsyncOptions,
+  OpenTelemetryOptions
+} from './types';
 
 @Global()
 @Module({})
@@ -52,9 +55,7 @@ export default class OpenTelemetryModule
     @Inject(OpenTelemetrySdkProvider) private readonly sdk: NodeSDK
   ) {}
 
-  public static register(
-    configuration: Partial<NodeSDKConfiguration>
-  ): DynamicModule {
+  public static register(options: OpenTelemetryOptions = {}): DynamicModule {
     return {
       module: OpenTelemetryModule,
       global: true,
@@ -62,13 +63,19 @@ export default class OpenTelemetryModule
       providers: [
         ...OpenTelemetryModule.providersAndExports,
         {
-          provide: SDK_CONFIGURATION,
+          provide: OPENTELEMETRY_OPTIONS,
           useValue: {
-            ...configuration
+            ...options,
+            ...(options.autoInstrumentations
+              ? [getNodeAutoInstrumentations()]
+              : [])
           }
         }
       ],
-      exports: [...OpenTelemetryModule.providersAndExports, SDK_CONFIGURATION]
+      exports: [
+        ...OpenTelemetryModule.providersAndExports,
+        OPENTELEMETRY_OPTIONS
+      ]
     };
   }
 
@@ -84,13 +91,16 @@ export default class OpenTelemetryModule
       ],
       providers: [
         ...OpenTelemetryModule.providersAndExports,
-        OpenTelemetryModule.createSdkConfigurationProvider(asyncOptions)
+        OpenTelemetryModule.createOpenTelemetryOptionsProvider(asyncOptions)
       ],
-      exports: [...OpenTelemetryModule.providersAndExports, SDK_CONFIGURATION]
+      exports: [
+        ...OpenTelemetryModule.providersAndExports,
+        OPENTELEMETRY_OPTIONS
+      ]
     };
   }
 
-  private static createSdkConfigurationProvider(
+  private static createOpenTelemetryOptionsProvider(
     asyncOptions: OpenTelemetryAsyncOptions
   ) {
     if (!asyncOptions.useFactory) {
@@ -98,20 +108,19 @@ export default class OpenTelemetryModule
     }
     return {
       inject: asyncOptions.inject || [],
-      provide: SDK_CONFIGURATION,
-      useFactory: async (
-        ...args: any[]
-      ): Promise<Partial<NodeSDKConfiguration>> => {
-        let configuration: Partial<NodeSDKConfiguration> = {};
+      provide: OPENTELEMETRY_OPTIONS,
+      useFactory: async (...args: any[]): Promise<OpenTelemetryOptions> => {
+        let options: OpenTelemetryOptions = {};
         if (asyncOptions?.useFactory) {
-          configuration = await asyncOptions.useFactory(...args);
+          options = await asyncOptions.useFactory(...args);
         }
         return {
-          ...(configuration || {}),
+          ...(options || {}),
           instrumentations: [
-            ...(configuration.instrumentations || []),
-            new HttpInstrumentation(),
-            new ExpressInstrumentation()
+            ...(options.instrumentations || []),
+            ...(options.autoInstrumentations
+              ? [getNodeAutoInstrumentations()]
+              : [])
           ]
         };
       }

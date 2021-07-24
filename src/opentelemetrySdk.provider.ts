@@ -24,16 +24,18 @@
 
 import process from 'process';
 import { FactoryProvider, Logger } from '@nestjs/common';
-import { NodeSDK, NodeSDKConfiguration } from '@opentelemetry/sdk-node';
-import { SDK_CONFIGURATION } from './types';
+import { NodeSDK } from '@opentelemetry/sdk-node';
+import { OPENTELEMETRY_OPTIONS, OpenTelemetryOptions } from './types';
 
 const logger = new Logger('OpenTelemetryModule');
 export const OPENTELEMETRY_SDK = 'OPENTELEMETRY_SDK';
 
 const OpenTelemetrySdkProvider: FactoryProvider<NodeSDK> = {
   provide: OPENTELEMETRY_SDK,
-  inject: [SDK_CONFIGURATION],
-  useFactory: (options: Partial<NodeSDKConfiguration>) => {
+  inject: [OPENTELEMETRY_OPTIONS],
+  useFactory: (options: OpenTelemetryOptions) => {
+    const clonedOptions = { ...(options || {}) };
+    delete clonedOptions.autoInstrumentations;
     const sdk = new NodeSDK(options || {});
     process.on('SIGTERM', async () => {
       try {

@@ -1,6 +1,6 @@
 /**
  * File: /.eslintrc.js
- * Project: nestjs-opentelemetry-sdk
+ * Project: opentelemetry-nestjs
  * File Created: 14-07-2021 11:43:59
  * Author: Clay Risser <email@clayrisser.com>
  * -----

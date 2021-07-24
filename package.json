@@ -1,5 +1,5 @@
 {
-  "name": "nestjs-opentelemetry-sdk",
+  "name": "opentelemetry-nestjs",
   "version": "0.0.1",
   "description": "nestjs module for opentelemetry",
   "sideEffects": false,
@@ -13,9 +13,9 @@
     "trace",
     "tracing"
   ],
-  "homepage": "https://github.com/silicon-hills/nestjs-opentelemetry-sdk",
+  "homepage": "https://github.com/silicon-hills/opentelemetry-nestjs",
   "bugs": {
-    "url": "https://github.com/silicon-hills/nestjs-opentelemetry-sdk/issues",
+    "url": "https://github.com/silicon-hills/opentelemetry-nestjs/issues",
     "email": "support@siliconhills.dev"
   },
   "license": "Apache-2.0",
@@ -32,7 +32,7 @@
   "main": "lib/index.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/silicon-hills/nestjs-opentelemetry-sdk"
+    "url": "https://github.com/silicon-hills/opentelemetry-nestjs"
   },
   "scripts": {
     "build": "make -s build",
@@ -55,8 +55,7 @@
     "@babel/runtime": "^7.14.6",
     "@nestjs/config": "^1.0.1",
     "@opentelemetry/api": "^1.0.1",
-    "@opentelemetry/instrumentation-express": "^0.23.0",
-    "@opentelemetry/instrumentation-http": "^0.23.0",
+    "@opentelemetry/auto-instrumentations-node": "^0.23.0",
     "@opentelemetry/sdk-node": "^0.23.0",
     "core-js": "^3.15.2"
   },

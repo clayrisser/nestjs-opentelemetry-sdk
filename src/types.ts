@@ -1,6 +1,6 @@
 /**
  * File: /src/types.ts
- * Project: nestjs-opentelemetry-sdk
+ * Project: opentelemetry-nestjs
  * File Created: 14-07-2021 11:43:59
  * Author: Clay Risser <email@clayrisser.com>
  * -----
@@ -29,12 +29,16 @@ export interface HashMap<T = any> {
   [key: string]: T;
 }
 
+export type OpenTelemetryOptions = Partial<NodeSDKConfiguration> & {
+  autoInstrumentations?: boolean;
+};
+
 export interface OpenTelemetryAsyncOptions
   extends Pick<ModuleMetadata, 'imports'> {
   inject?: any[];
-  useFactory?: (
+  useFactory: (
     ...args: any[]
-  ) => Promise<Partial<NodeSDKConfiguration>> | Partial<NodeSDKConfiguration>;
+  ) => Promise<OpenTelemetryOptions> | OpenTelemetryOptions;
 }
 
-export const SDK_CONFIGURATION = 'OPENTELEMETRY_SDK_CONFIGURATION';
+export const OPENTELEMETRY_OPTIONS = 'OPENTELEMETRY_OPTIONS';
