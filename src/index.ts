@@ -65,6 +65,7 @@ export default class OpenTelemetryModule
         {
           provide: OPENTELEMETRY_OPTIONS,
           useValue: {
+            autoInstrumentations: true,
             ...options,
             ...(options.autoInstrumentations
               ? [getNodeAutoInstrumentations()]
@@ -115,6 +116,7 @@ export default class OpenTelemetryModule
           options = await asyncOptions.useFactory(...args);
         }
         return {
+          autoInstrumentations: true,
           ...(options || {}),
           instrumentations: [
             ...(options.instrumentations || []),
