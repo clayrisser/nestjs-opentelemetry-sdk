@@ -1,6 +1,6 @@
 {
   "name": "opentelemetry-nestjs",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "nestjs module for opentelemetry",
   "sideEffects": false,
   "keywords": [
