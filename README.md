@@ -2,6 +2,8 @@
 
 [![GitHub stars](https://img.shields.io/github/stars/silicon-hills/opentelemetry-nestjs.svg?style=social&label=Stars)](https://github.com/silicon-hills/opentelemetry-nestjs)
 
+![](assets/opentelemetry-nestjs.png)
+
 > nestjs module for opentelemetry
 
 Please ★ this repo if you found it useful ★ ★ ★
